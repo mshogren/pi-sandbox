@@ -23,6 +23,12 @@ io.on('connection', function(socket){
   bbq.on('temperatureChange', function(data) {
     socket.emit('temperatureChange', data);
   });
+
+  socket.on('setTarget', function(temp, callback) {
+    bbq.setTarget(temp);
+    console.log('Target: ', temp);
+    callback(temp);
+  });
 });
 
 

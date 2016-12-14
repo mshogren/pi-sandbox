@@ -9,12 +9,12 @@ module.exports = BBQController;
 function BBQController() {
   if (!(this instanceof BBQController)) return new BBQController();
 
+  this.target = 20;
+
   EventEmitter.call(this);
 }
 
 inherits(BBQController, EventEmitter);
-
-BBQController.prototype.target = 20;
 
 BBQController.prototype.start = function start() {
   var self = this;
@@ -30,15 +30,43 @@ BBQController.prototype.start = function start() {
     sensor.on('temperatureChange', function(temp) {
       data.sensors[i].temperature = temp;
 
-      gpioutil.write(24, temp < self.target, function(err) {
-        if (err) throw err;
+      if (i == 0) {
+        var belowTarget = temp < self.target;
 
-        data.fan = temp < self.target;
+        gpioutil.write(24, belowTarget, function(err) {
+          if (err) throw err;
+
+          data.fan = belowTarget;
+          data.date = new Date();
+
+          self.emit('temperatureChange', data);
+        });
+      }
+      else {
         data.date = new Date();
 
         self.emit('temperatureChange', data);
-      });
+      }
     });
+  });
+};
+
+BBQController.prototype.setTarget = function setTarget(target) {
+  var self = this;
+
+  self.target = target;
+
+  var temp = data.sensors[0].temperature;
+
+  var belowTarget = temp < self.target;
+
+  gpioutil.write(24, belowTarget, function(err) {
+    if (err) throw err;
+
+    data.fan = belowTarget;
+    data.date = new Date();
+
+    self.emit('temperatureChange', data);
   });
 };
 

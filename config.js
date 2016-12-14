@@ -5,11 +5,11 @@ module.exports = {
     {
       'name': 'Grill Temp',
       'channel': 0
+    },
+    {
+      'name': 'Meat Temp',
+      'channel': 1
     }
-    //{
-    //  'name': 'Meat Temp',
-    //  'channel': 1
-    //}
   ]
 };
 
