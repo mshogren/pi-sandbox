@@ -9,8 +9,8 @@
       var socket = io();
 
       socket.on('connect', function() {
-        socket.on('text', function(text) {
-          alert(text);
+        socket.on('temperatureChange', function(data) {
+          console.log(JSON.stringify(data));
         });
       });
     </script>
