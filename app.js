@@ -1,34 +1,47 @@
-var app = require('express')();
-var http = app.listen(3000, function() {
-  console.log('listening on *:3000');
-});
-var io = require('./socketServer.js')(http);
-var bbq = require('./bbq.js')();
+const app = require('express')();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const bbq = require('./bbq.js')();
+const ServerShutdown = require('server-shutdown');
 
-app.get('/', function(req, res){
-  res.sendFile('index.html', {root: __dirname});
+const serverShutdown = new ServerShutdown();
+
+serverShutdown.registerServer(http);
+serverShutdown.registerServer(io, ServerShutdown.Adapters.socketio);
+
+const gracefulShutdown = function gracefulShutdown() {
+  bbq.stop();
+  serverShutdown.shutdown(() => {
+    console.log('All servers shutdown gracefully');
+  });
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
+app.get('/', (req, res) => {
+  res.sendFile('index.html', { root: __dirname });
 });
 
-io.on('connection', function(socket){
+io.on('connection', (socket) => {
   console.log('a user connected');
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', () => {
     console.log('user disconnected');
-
-    bbq.stop();
   });
 
-  bbq.start();
-
-  bbq.on('temperatureChange', function(data) {
+  bbq.on('temperatureChange', (data) => {
     socket.emit('temperatureChange', data);
   });
 
-  socket.on('setTarget', function(temp, callback) {
+  socket.on('setTarget', (temp, callback) => {
     bbq.setTarget(temp);
     console.log('Target: ', temp);
     callback(temp);
   });
 });
 
+http.listen(3000, () => {
+  console.log('listening on *:3000');
+});
 

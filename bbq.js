@@ -1,39 +1,32 @@
-var inherits = require('util').inherits;
-var EventEmitter = require('events').EventEmitter;
-var Sensor = require('./sensor.js');
-var data = require('./config.js');
-var gpioutil = require('pi-gpioutil');
-
-module.exports = BBQController;
+const inherits = require('util').inherits;
+const EventEmitter = require('events').EventEmitter;
+const Sensor = require('./sensor.js');
+const data = require('./config.js');
+const gpioutil = require('pi-gpioutil');
 
 function BBQController() {
   if (!(this instanceof BBQController)) return new BBQController();
 
-  this.target = 20;
-
   EventEmitter.call(this);
-}
 
-inherits(BBQController, EventEmitter);
+  const self = this;
 
-BBQController.prototype.start = function start() {
-  var self = this;
+  self.target = 20;
+  self.sensors = [];
 
-  data.sensors.forEach(function(s, i) {
-    self._sensors = [];
-
-    var sensor = Sensor(s.channel);
-    self._sensors.push(sensor);
+  data.sensors.forEach((s, i) => {
+    const sensor = Sensor(s.channel);
+    self.sensors.push(sensor);
 
     sensor.start();
 
-    sensor.on('temperatureChange', function(temp) {
+    sensor.on('temperatureChange', (temp) => {
       data.sensors[i].temperature = temp;
 
-      if (i == 0) {
-        var belowTarget = temp < self.target;
+      if (i === 0) {
+        const belowTarget = temp < self.target;
 
-        gpioutil.write(24, belowTarget, function(err) {
+        gpioutil.write(24, belowTarget, (err) => {
           if (err) throw err;
 
           data.fan = belowTarget;
@@ -41,26 +34,27 @@ BBQController.prototype.start = function start() {
 
           self.emit('temperatureChange', data);
         });
-      }
-      else {
+      } else {
         data.date = new Date();
 
         self.emit('temperatureChange', data);
       }
     });
   });
-};
+}
+
+inherits(BBQController, EventEmitter);
 
 BBQController.prototype.setTarget = function setTarget(target) {
-  var self = this;
+  const self = this;
 
   self.target = target;
 
-  var temp = data.sensors[0].temperature;
+  const temp = data.sensors[0].temperature;
 
-  var belowTarget = temp < self.target;
+  const belowTarget = temp < self.target;
 
-  gpioutil.write(24, belowTarget, function(err) {
+  gpioutil.write(24, belowTarget, (err) => {
     if (err) throw err;
 
     data.fan = belowTarget;
@@ -71,12 +65,13 @@ BBQController.prototype.setTarget = function setTarget(target) {
 };
 
 BBQController.prototype.stop = function stop() {
-  gpioutil.write(24, false, function(err) {
+  gpioutil.write(24, false, (err) => {
     if (err) throw err;
   });
 
-  this._sensors.forEach(function(s) {
+  this.sensors.forEach((s) => {
     s.stop();
   });
 };
 
+module.exports = BBQController;
