@@ -1,17 +1,36 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Navbar, Container, Row, Col } from 'reactstrap';
+import TemperatureSlider from './Slider.js';
+import Fan from './Fan.js';
+import Temperature from './Temperature.js';
 
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
-        </div>
-        <p className="App-intro">
-        </p>
+      <div>
+        <Navbar/>
+        <Container>
+          <Row>
+            <Col xs="12">
+              <Fan/>
+            </Col>
+          </Row>
+          <Row>
+            <Col xs={{ size: 10, offset: 1 }}>
+              <TemperatureSlider/>
+            </Col>
+          </Row>
+          <Row>
+            <Col xs={{ size: 4, offset: 4 }}>
+              <Temperature/>
+            </Col>
+          </Row>
+          <Row>
+            <Col xs={{ size: 4, offset: 4 }}>
+              <Temperature/>
+            </Col>
+          </Row>
+        </Container>
       </div>
     );
   }
