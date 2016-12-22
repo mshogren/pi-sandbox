@@ -30,13 +30,10 @@ function BBQController() {
           if (err) throw err;
 
           data.fan = belowTarget;
-          data.date = new Date();
 
           self.emit('temperatureChange', data);
         });
       } else {
-        data.date = new Date();
-
         self.emit('temperatureChange', data);
       }
     });
@@ -58,7 +55,6 @@ BBQController.prototype.setTarget = function setTarget(target) {
     if (err) throw err;
 
     data.fan = belowTarget;
-    data.date = new Date();
 
     self.emit('temperatureChange', data);
   });

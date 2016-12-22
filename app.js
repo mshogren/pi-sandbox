@@ -1,47 +1,55 @@
-const app = require('express')();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
 const bbq = require('./bbq.js')();
-const ServerShutdown = require('server-shutdown');
+const admin = require('firebase-admin');
 
-const serverShutdown = new ServerShutdown();
+admin.initializeApp({
+  credential: admin.credential.cert('serviceAccountKey.json'),
+  databaseURL: 'https://bbqpi-b8026.firebaseio.com',
+  databaseAuthVariableOverride: {
+    uid: 'bbqpi-service',
+  },
+});
 
-serverShutdown.registerServer(http);
-serverShutdown.registerServer(io, ServerShutdown.Adapters.socketio);
+const db = admin.database();
+const stateRef = db.ref('state');
+const tempRef = db.ref('targetTemperature');
+
+const period = 1000 * 60 * 60 * 0.016666;
+
+const truncateData = function truncateData() {
+  const toDeleteRef = stateRef.orderByChild('timestamp').endAt((Date.now() - period));
+  toDeleteRef.on('child_added', (toDelete) => {
+    toDelete.ref.remove().then(
+      () => {},
+      (err) => {
+        console.log(err);
+      });
+  });
+};
+
+truncateData();
+const interval = setInterval(truncateData, period);
 
 const gracefulShutdown = function gracefulShutdown() {
+  clearInterval(interval);
   bbq.stop();
-  serverShutdown.shutdown(() => {
-    console.log('All servers shutdown gracefully');
-  });
+  db.goOffline();
 };
 
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 
-app.get('/', (req, res) => {
-  res.sendFile('index.html', { root: __dirname });
+bbq.on('temperatureChange', (data) => {
+  const record = data;
+  record.timestamp = admin.database.ServerValue.TIMESTAMP;
+  stateRef.push(data).then(
+    () => {},
+    (err) => {
+      console.log(err);
+    });
 });
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-
-  bbq.on('temperatureChange', (data) => {
-    socket.emit('temperatureChange', data);
-  });
-
-  socket.on('setTarget', (temp, callback) => {
-    bbq.setTarget(temp);
-    console.log('Target: ', temp);
-    callback(temp);
-  });
+tempRef.on('value', (data) => {
+  const temp = data.val();
+  bbq.setTarget(temp);
+  console.log('Target: ', temp);
 });
-
-http.listen(3000, () => {
-  console.log('listening on *:3000');
-});
-

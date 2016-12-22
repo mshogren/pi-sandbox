@@ -17,11 +17,9 @@
   },
   "homepage": "https://github.com/mshogren/pi-sandbox#readme",
   "dependencies": {
-    "express": "^4.14.0",
+    "firebase-admin": "^4.0.4",
     "mcp-spi-adc": "^0.3.1",
-    "pi-gpioutil": "0.0.3",
-    "server-shutdown": "^0.3.0",
-    "socket.io": "^1.7.1"
+    "pi-gpioutil": "0.0.3"
   },
   "devDependencies": {
     "eslint": "^3.12.2",
