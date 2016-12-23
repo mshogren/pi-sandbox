@@ -14,28 +14,45 @@ function BBQController() {
   self.target = 20;
   self.sensors = [];
 
-  data.sensors.forEach((s, i) => {
-    const sensor = Sensor(s.channel);
+  self.setFan = function setFan(isFanOn, callback) {
+    gpioutil.write(24, isFanOn, (err) => {
+      if (err) throw err;
+
+      if (callback) callback();
+    });
+  };
+
+  self.handleGrillChange = function handleGrillChange() {
+    const temp = data.grillSensor.temperature;
+
+    const belowTarget = temp < self.target;
+
+    self.setFan(belowTarget, () => {
+      data.fan = belowTarget;
+      self.emit('temperatureChange', data);
+    });
+  };
+
+  self.setupSensor = function setupSensor(sensorData, callback) {
+    const sensor = Sensor(sensorData.channel);
     self.sensors.push(sensor);
 
     sensor.start();
 
     sensor.on('temperatureChange', (temp) => {
-      data.sensors[i].temperature = temp;
+      sensorData.setTemperature(temp);
 
-      if (i === 0) {
-        const belowTarget = temp < self.target;
+      callback();
+    });
+  };
 
-        gpioutil.write(24, belowTarget, (err) => {
-          if (err) throw err;
+  self.setupSensor(data.grillSensor, () => {
+    self.handleGrillChange();
+  });
 
-          data.fan = belowTarget;
-
-          self.emit('temperatureChange', data);
-        });
-      } else {
-        self.emit('temperatureChange', data);
-      }
+  data.otherSensors.forEach((sensorData) => {
+    self.setupSensor(sensorData, () => {
+      self.emit('temperatureChange', data);
     });
   });
 }
@@ -47,23 +64,11 @@ BBQController.prototype.setTarget = function setTarget(target) {
 
   self.target = target;
 
-  const temp = data.sensors[0].temperature;
-
-  const belowTarget = temp < self.target;
-
-  gpioutil.write(24, belowTarget, (err) => {
-    if (err) throw err;
-
-    data.fan = belowTarget;
-
-    self.emit('temperatureChange', data);
-  });
+  self.handleGrillChange();
 };
 
 BBQController.prototype.stop = function stop() {
-  gpioutil.write(24, false, (err) => {
-    if (err) throw err;
-  });
+  this.setFan(false);
 
   this.sensors.forEach((s) => {
     s.stop();

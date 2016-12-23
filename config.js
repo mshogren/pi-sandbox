@@ -1,15 +1,11 @@
+const SensorData = require('./sensorData.js');
+
 module.exports = {
   date: new Date(),
   fan: false,
-  sensors: [
-    {
-      name: 'Grill Temp',
-      channel: 0,
-    },
-    {
-      name: 'Meat Temp',
-      channel: 1,
-    },
+  grillSensor: SensorData(0),
+  otherSensors: [
+    SensorData(1, 'Meat Temp'),
   ],
 };
 
