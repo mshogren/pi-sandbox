@@ -13,7 +13,7 @@ const db = admin.database();
 const stateRef = db.ref('state');
 const tempRef = db.ref('targetTemperature');
 
-const period = 1000 * 60 * 60 * 0.016666;
+const period = 1000 * 60 * 60 * 1;
 
 const truncateData = function truncateData() {
   const toDeleteRef = stateRef.orderByChild('timestamp').endAt((Date.now() - period));
