@@ -7,7 +7,7 @@ function SensorData(channel, name) {
 }
 
 SensorData.prototype.setTemperature = function setTemperature(temp) {
-  this.temp = temp;
+  this.temperature = temp;
 };
 
 module.exports = SensorData;
