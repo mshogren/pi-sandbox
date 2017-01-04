@@ -17,12 +17,14 @@ const period = 1000 * 60 * 60 * 1;
 
 const truncateData = function truncateData() {
   const toDeleteRef = stateRef.orderByChild('timestamp').endAt((Date.now() - period));
-  toDeleteRef.on('child_added', (toDelete) => {
-    toDelete.ref.remove().then(
-      () => {},
-      (err) => {
-        console.log(err);
-      });
+  toDeleteRef.once('value', (toDelete) => {
+    toDelete.forEach((child) => {
+      child.ref.remove().then(
+        () => {},
+        (err) => {
+          console.log(err);
+        });
+    });
   });
 };
 
