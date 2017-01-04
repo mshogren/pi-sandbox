@@ -4,7 +4,7 @@ import TemperatureSlider from './TemperatureSlider.js';
 
 class SensorComponent extends Component {
   render() {
-    const { title, actionElement, label,sliderDisabled } = this.props;
+    const { title, label, icon, currentTemperature, setTemperature, handleChange, sliderDisabled } = this.props;
 
     return (
       <Container>
@@ -13,7 +13,7 @@ class SensorComponent extends Component {
             <h5>{ title }</h5>
           </Col>
           <Col xs={2}>
-            { actionElement }
+            { icon }
           </Col>
         </Row>
         <Row style={{ paddingBottom: '1em' }}>
@@ -21,7 +21,7 @@ class SensorComponent extends Component {
             <p style={{ fontSize: '10px' }}>Current</p>
           </Col>
           <Col xs={10}>
-            <TemperatureSlider {...this.props} />
+            <TemperatureSlider value={currentTemperature} {...this.props} />
           </Col>
         </Row>
         <Row style={{ paddingBottom: '1em' }}>
@@ -29,12 +29,17 @@ class SensorComponent extends Component {
             <p style={{ fontSize: '10px' }}>{label}</p>
           </Col>
           <Col xs={10}>
-            <TemperatureSlider disabled={sliderDisabled} {...this.props} />
+            <TemperatureSlider defaultValue={setTemperature} disabled={sliderDisabled} onAfterChange={handleChange} {...this.props} />
           </Col>
         </Row>
       </Container>
     );
   }
 }
+
+SensorComponent.defaultProps = {
+  currentTemperature: 0,
+  setTemperature: 0,
+};
 
 export default SensorComponent;

@@ -1,13 +1,30 @@
-import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import React from 'react';
 import SensorComponent from './SensorComponent.js';
 import Fan from './Fan.js';
+import { setTargetTemperature } from './actions.js';
 
-class TargetSensor extends Component {
-  render() {
-    return (
-      <SensorComponent title="Grill Temperature" max={450} label="Target" actionElement={ <Fan on={ false } /> } />
-    );
+const mapStateToProps = (state) => {
+  const { currentTemperature, targetTemperature, fanOn } = state.targetSensor;
+
+  return {
+    title: 'Grill Temperature',
+    label: 'Target',
+    icon: ( <Fan on={ fanOn } /> ),
+    max: 450,
+    currentTemperature,
+    setTemperature: targetTemperature,
   }
-}
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    handleChange: (value) => {
+      dispatch(setTargetTemperature(value));
+    }
+  }
+};
+
+const TargetSensor = connect(mapStateToProps, mapDispatchToProps)(SensorComponent);
 
 export default TargetSensor;
