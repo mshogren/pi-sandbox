@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import SensorComponent from './SensorComponent.js';
-import Bell from './Bell.js';
+import SensorComponent from './SensorComponent';
+import Bell from './Bell';
 
 class AlarmSensor extends Component {
   constructor(props) {

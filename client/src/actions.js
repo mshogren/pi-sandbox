@@ -27,10 +27,14 @@ firebase.initializeApp(config);
 
 export function login() {
   return (dispatch) => {
-    firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(
-      (result) => console.log(result),
-      (err) => console.log(err)
-    )
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(
+          (result) => console.log(result),
+          (err) => console.log(err)
+        )
+      }
+    });
   }
 };
 
